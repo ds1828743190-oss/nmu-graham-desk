@@ -1,0 +1,56 @@
+# =====================================================================
+# 北民大格雷厄姆的 ValueDesk · 主配置文件
+# 全部判断阈值集中于此；不提供本文件时使用 src/vd/config.py 默认值。
+# 修改任何阈值后，建议重跑筛选并对比候选池变化（这是复盘的一部分）。
+# =====================================================================
+
+data:
+  source: "akshare"            # mock = 离线演示（含埋雷样本）；akshare = 真实A股
+  years: 5                  # 分析年数
+  max_symbols: 100          # akshare 模式扫描上限
+  mock_seed: 42             # 模拟数据随机种子（确定性）
+  mock_n_companies: 30
+
+screen:
+  min_listed_years: 5       # 上市年限下限（排除次新股）
+  exclude_st: true          # 排除 ST/*ST
+  min_market_cap: 3000000000  # 市值下限（元）
+  min_roe_latest: 0.08      # 最近一年 ROE 下限
+  min_roe_5y_avg: 0.10      # 近 5 年平均 ROE 下限
+  max_pe: 60.0              # PE(TTM) 上限
+  min_dividend_yield: 0.0   # 股息率下限（0 = 不启用）
+
+vetting:
+  # —— 现金流（利润含金量是排雷第一优先级）——
+  ocf_neg_years_limit_red: 2      # 经营现金流连续为负 ≥2 年 → 红灯（剔除）
+  ocf_profit_ratio_red: 0.5       # 5年累计经营现金流 / 净利润 < 0.5 → 红灯
+  ocf_profit_ratio_warn: 0.8      # < 0.8 → 黄灯
+  # —— 存贷双高（康美式财务特征）——
+  cash_ratio_high: 0.20           # 货币资金/总资产 过高线
+  debt_fund_ratio_high: 0.20      # 有息负债/总资产 过高线
+  cash_debt_double_high_red: true # 两个同时超线 → 红灯
+  # —— 应收 / 存货 ——
+  receivable_ratio_warn: 0.50     # 应收账款/营收
+  receivable_growth_gap_warn: 0.30  # 应收增速 − 营收增速（百分点）
+  inventory_ratio_warn: 0.60      # 存货/营收
+  # —— 商誉 / 杠杆 ——
+  goodwill_ratio_warn: 0.30       # 商誉/净资产
+  debt_ratio_warn: 0.70           # 资产负债率
+  # —— 利润质量 / 趋势 ——
+  deducted_ratio_warn: 0.60       # 扣非净利/净利
+  roe_decline_years_warn: 2       # ROE 连续下滑年数
+
+scoring:
+  weights:
+    quality: 0.30
+    safety: 0.20
+    cashflow: 0.20
+    growth: 0.15
+    valuation: 0.15
+  grade_a: 80.0    # 综合分 ≥ 80 → A
+  grade_b: 65.0    # ≥ 65 → B
+  grade_c: 50.0    # ≥ 50 → C；其余 → D
+
+report:
+  out_dir: "reports"
+  top_n: 20
